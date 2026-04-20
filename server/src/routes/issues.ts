@@ -25,6 +25,7 @@ import {
   updateIssueSchema,
   getClosedIsolatedExecutionWorkspaceMessage,
   isClosedIsolatedExecutionWorkspace,
+  isUuidLike,
   type ExecutionWorkspace,
 } from "@paperclipai/shared";
 import { trackAgentTaskCompleted } from "@paperclipai/shared/telemetry";
@@ -402,9 +403,15 @@ export function issueRoutes(
   function requireAgentRunId(req: Request, res: Response) {
     if (req.actor.type !== "agent") return null;
     const runId = req.actor.runId?.trim();
-    if (runId) return runId;
-    res.status(401).json({ error: "Agent run id required" });
-    return null;
+    if (!runId) {
+      res.status(401).json({ error: "Agent run id required" });
+      return null;
+    }
+    if (!isUuidLike(runId)) {
+      res.status(400).json({ error: "X-Paperclip-Run-Id must be a valid UUID" });
+      return null;
+    }
+    return runId;
   }
 
   async function assertAgentRunCheckoutOwnership(

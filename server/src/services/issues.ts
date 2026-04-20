@@ -1972,6 +1972,28 @@ export function issueService(db: Db) {
       if (!issueCompany) throw notFound("Issue not found");
       await assertAssignableAgent(issueCompany.companyId, agentId);
 
+      // If checkoutRunId is provided but doesn't exist in heartbeatRuns, auto-create
+      // a minimal run row. This supports externally-driven agents (outbound-polling)
+      // that generate their own run IDs without going through the wakeup system.
+      if (checkoutRunId) {
+        const existingRun = await db
+          .select({ id: heartbeatRuns.id })
+          .from(heartbeatRuns)
+          .where(eq(heartbeatRuns.id, checkoutRunId))
+          .then((rows) => rows[0] ?? null);
+        if (!existingRun) {
+          await db.insert(heartbeatRuns).values({
+            id: checkoutRunId,
+            companyId: issueCompany.companyId,
+            agentId,
+            invocationSource: "external",
+            triggerDetail: "agent_checkout",
+            status: "running",
+            startedAt: new Date(),
+          });
+        }
+      }
+
       const now = new Date();
 
       // Fix C: staleness detection — if executionRunId references a run that is no
