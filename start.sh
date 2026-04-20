@@ -20,7 +20,7 @@ cat > "$CONFIG_DIR/config.json" <<EOF
     "updatedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
     "source": "configure"
   },
-  "database": { "mode": "postgres" },
+  "database": { "mode": "postgres", "connectionString": "${DATABASE_URL}" },
   "logging": { "mode": "file", "logDir": "/root/.paperclip/instances/default/logs" },
   "server": {
     "deploymentMode": "authenticated",
