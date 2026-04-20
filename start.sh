@@ -13,10 +13,14 @@ if [ ! -f "$CONFIG_DIR/secrets/master.key" ]; then
   openssl rand -hex 32 > "$CONFIG_DIR/secrets/master.key"
 fi
 
-cat > "$CONFIG_DIR/config.json" <<'EOF'
+cat > "$CONFIG_DIR/config.json" <<EOF
 {
+  "\$meta": {
+    "version": 1,
+    "updatedAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+    "source": "configure"
+  },
   "database": { "mode": "postgres" },
-  "llm": {},
   "logging": { "mode": "file", "logDir": "/root/.paperclip/instances/default/logs" },
   "server": {
     "deploymentMode": "authenticated",
